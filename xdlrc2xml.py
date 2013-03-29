@@ -24,10 +24,10 @@ def replace(line,numLine):
 	words = line.split()
 	if words[0][0]=='(' :
 		pushdown.append(words[0][1:])
-		line = line.replace('(','<')
+		line = line.replace('(','<',1) # changed
 		if words[len(words)-1][len(words[len(words)-1])-1] == ')' :
 			pushdown.pop()
-			line = line.replace(')',' />')
+			line = line[0:len(line)-2] + ' />\n' #changed
 		else:
 			line = line.replace('\n',' >\n')
 		line = add_attr(line)
