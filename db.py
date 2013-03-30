@@ -30,22 +30,17 @@ Base.metadata.bind=engine
 
 #Table description
 #####################
-class Docs(Base):
-  __tablename__="docs"
-  hashed=Column(String,primary_key=True)
-  txt=Column(String)
-
-class Files(Base):
-  __tablename__="files"
-  hashed=Column(String,primary_key=True)
-  name=Column(String)
-  path=Column(String)
-
-class Lables(Base):
-  __tablename__="labels"
+class FpgaResource(Base):
+  __tablename__="fpga_resource"
   id=Column(Integer,primary_key=True)
-  hashed=Column(String)
-  label=Column(String)
+  model=Column(String)
+  version=Column(String)
+  speedGrade=Column(String)
+  tileX=Column(Integer)
+  tileY=Column(Integer)
+  x=Column(Integer)
+  y=Column(Integer)
+  type=Column(String)
 ######################
 
 Base.metadata.create_all()
@@ -56,53 +51,26 @@ session=Session()
 
 # Queries
 #######################
-def getDocByHash(hashed):
-  d = session.query(Docs).filter(Docs.hashed==hashed).first()
-  return d
+def getFpgaResourceByPositionType(model,version,speedGrade,tileX,tileY,type):
+  r = session.query(FpgaResource).filter(FpgaResource.model==model and FpgaResource.version==version and FpgaResource.speedGrade==speedGrade and FpgaResource.tileX==tileX and FpgaResource.tileY==tileY and FpgaResource.type==type).first()
+  return r
 
-def getFileListByHash(hashed):
-  f = session.query(Files).filter(Files.hashed==hashed).all()
-  return f
+def addResource(model,version,speedGrade,tileX,tileY,x,y,type):
+  r = getFileByHashByPath(model,version,speedGrade,tileX,tileY,type)
 
-def getFileByHashByPath(hashed,path):
-  f = session.query(Files).filter(Files.hashed==hashed and Files.path==path).first()
-  return f
+  if r==None:
+    r=FpgaResource()
+    r.model=model
+    r.version=version
+    r.speedGrade=speedGrade
+    r.tileX=tileX
+    r.tileY=tileY
+    r.x=x
+    r.y=y
+    r.type=type
 
-def addFile(hashed,fileName,filePath):
-  f = getFileByHashByPath(hashed,filePath)
-
-  if f==None:
-    f=Files()
-    f.hashed=hashed
-    f.name=fileName
-    f.path=filePath
-    session.add(f)
+    session.add(r)
     session.commit()
 
-  return f
-
-def addDoc(hashed,txt,fileName,filePath):
-  doc=getDocByHash(hashed)
-
-  if doc==None:
-    doc=Docs()
-    doc.hashed=hashed
-    doc.txt=txt
-    session.add(doc)
-    session.commit()
-
-  addFile(hashed,fileName,filePath)
-
-  return doc
-
-def findDocList(queryTxt):
-  docList=session.query(Docs).filter(Docs.txt.contains(queryTxt)).all()
-
-  files=list()
-
-  for d in docList:
-    f=getFileListByHash(d.hashed)
-    files.append(f)
-
-  return files
-  ##########################
+  return r
+##########################

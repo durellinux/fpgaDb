@@ -47,7 +47,8 @@ if len(sys.argv)<2:
 	sys.exit(-1)
 try:
 	file_input = open(sys.argv[1],"r")
-	file_output = open(sys.argv[1]+"_PARSED.xml","w")
+	outFile=sys.argv[1].split(".")[0]
+	file_output = open(outFile+".xml","w")
 except	IOError as e:
 	print "error: impossible to open file " + "\""+e.filename+"\""
 	sys.exit(-1)
