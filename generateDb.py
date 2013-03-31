@@ -1,8 +1,6 @@
 import os
 import sys
 
-
-
 ############################################################################
 # Preprocessing: Creating needed files
 
@@ -26,11 +24,5 @@ os.system("rm inputs/sample -rf")
 
 ############################################################################
 
-
-# Appending parser directory to path
-sys.path.append("./xdlrcParser/python")
-
 # Importing db class: it will create the db
 import db
-
-
