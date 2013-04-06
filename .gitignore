@@ -1,6 +1,7 @@
 /db.pyc
 /fpgaDb.db
 /inputs/boards_PARSED.txt
+/inputs/sample.xml
 /xdlrcParser/python/cfg.pyc
 /xdlrcParser/python/conn.pyc
 /xdlrcParser/python/element.pyc

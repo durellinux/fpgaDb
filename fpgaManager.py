@@ -115,21 +115,15 @@ class Fpga():
 	def loadFpga(self,fpgaName):
 		self.dbName = "fpgaDbs/" + fpgaName + ".db"
 		self.xmlFilename = "inputs/" + fpgaName + ".xml"
-		if (not os.path.exists(self.dbName)):
-  			f=open(self.dbName,"w");
-  			f.close()
-			self.__open_db(dbCreated=False)
-		else:
-			self.__open_db()
-
-#	def __create_method_as_string(self,name,par_list,body):
-#		method = "def " + name + "(" + ",".join(par_list) + "): \n" + body
-#		return method
-
-
-
-
-
+		if (not os.path.exists(self.xmlFilename)):
+			os.system("python scripts/xdlrc2xml.py inputs/sample.xdlrc")
+		self.__open_db(dbCreated=False)
+#		if (not os.path.exists(self.dbName)):
+#  			f=open(self.dbName,"w");
+#  			f.close()
+#			self.__open_db(dbCreated=False)
+#		else:
+#			self.__open_db()
 
 
 
