@@ -116,7 +116,7 @@ class Fpga():
 		self.dbName = "fpgaDbs/" + fpgaName + ".db"
 		self.xmlFilename = "inputs/" + fpgaName + ".xml"
 		if (not os.path.exists(self.xmlFilename)):
-			os.system("python scripts/xdlrc2xml.py inputs/sample.xdlrc")
+			os.system("python scripts/xdlrc2xml.py inputs/"+fpgaName+".xdlrc")
 		self.__open_db(dbCreated=False)
 #		if (not os.path.exists(self.dbName)):
 #  			f=open(self.dbName,"w");
