@@ -4,20 +4,43 @@ pushdown = []
 
 def add_attr(line):
 	words = line.split()
-	words = words[1:len(words)-1]
+	entity = words[0]
+	words = words[1:-1]
 	i=0	
 	for w in words:
 		line = line.replace(w,"!",1)
 		i+=1
+
+	# create generalType for entity
+	tile_att = ['x','y','generalType','specificType','num']
+	if entity == '<tile':
+		tag = words[2]
+		generalType = ""
+		count = len(tag)-1
+		for c in tag[::-1]:
+			if c=='X':
+				break
+			else:
+				count -= 1
+		generalType = tag[0:count-1]
+		tileX = tag[count+1:].split('Y')[0]
+		tileY = tag[count+1:].split('Y')[1]
+		words.remove(tag)
+		words.insert(2,generalType + "\" tileX=\""+tileX+"\" tileY=\""+tileY)
+	#####
+
 	i=0
 	for w in words:
-		line = line.replace("!","a"+str(i)+"=\""+w+"\"",1)
+		if entity == '<tile':
+			line = line.replace("!",tile_att[i]+"=\""+w+"\"",1)
+		else:
+			line = line.replace("!","a"+str(i)+"=\""+w+"\"",1)
 		i+=1
 	return line
 
 def replace(line,numLine):
 	if line.count("<")+line.count(">")+line.count("&") > 0 :
-		print str(numLine)+" "+ line,
+		#print str(numLine)+" "+ line,
 		line=line.replace("<","LESS")
 		line=line.replace(">","GREATER")
 		line=line.replace("&","AMPERSAND")
@@ -64,7 +87,7 @@ while 1:
 	line = file_input.readline()
 	i+=1
 
-print "Done"
+print "Done: xml from xdlrc created"
 file_input.close()
 file_output.close()
 sys.exit(0)
