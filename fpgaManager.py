@@ -55,6 +55,8 @@ class Fpga():
 						dic_att['fatherType'] = Column(String)
 						for att in list_att:
 							dic_att[att] = Column(String)
+						dic_att['subClasses'] = None
+						dic_att['father'] = None
 						self.allClassName.append(words[0][1:])
 						self.allClass[words[0][1:]] = type(words[0][1:],(self.Base,),dic_att)
 						self.Base.metadata.create_all()
@@ -144,7 +146,7 @@ class Fpga():
 		self.allClass['boardList'] = boardList
 		for k in self.session.query(tableList):
 			self.allClassName.append(k.name)
-			self.allClass[k.name] = type(str(k.name),(self.Base,),{'__table__' : Table(k.name, self.Base.metadata, autoload=True, autoload_with=self.engine)})
+			self.allClass[k.name] = type(str(k.name),(self.Base,),{'__table__' : Table(k.name, self.Base.metadata, autoload=True, autoload_with=self.engine),'subClasses':None,'father':None})
 		self.boardList = list()
 		for b in self.session.query(boardList):
 			self.boardList.append(b.board)
@@ -192,8 +194,16 @@ class Fpga():
 	def getTileByXY(self,x,y):
 		return self.__selectOnDb('tile',[self.allClass['tile'].x==x, self.allClass['tile'].y==y]).first()
 
+	def addSubClasses(self,objClass):
+		children = list()
+		for t in self.allClassName:			
+			children += self.__selectOnDb(t,[self.allClass[t].idFather==objClass.id, self.allClass[t].fatherType==objClass.__class__.__name__, self.allClass[t].board==self.fpgaName]).all()
+		objClass.subClasses = children
+		return
 
-
-
+	def addFather(self, objClass):
+		father = self.__selectOnDb(objClass.fatherType,[self.allClass[objClass.fatherType].id==objClass.idFather]).first()
+		objClass.father = father
+		return
 
 

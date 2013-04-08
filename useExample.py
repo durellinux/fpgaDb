@@ -1,12 +1,19 @@
 from fpgaManager import *
 
-x=Fpga()
-x.loadFpga("sample")
+board=Fpga()
+board.loadFpga("sample")
 
-x=Fpga()
-x.loadFpga("sample2")
+board=Fpga()
+board.loadFpga("sample2")
 
-x=Fpga()
-x.loadFpga("sample")
-x.getTileByXY(0,88).generalType
-x.getTileByXY(0,88).specificType
+board=Fpga()
+board.loadFpga("sample")
+
+tile = board.getTileByXY(1,0)
+print t.generalType
+
+board.addSubClasses(t)
+print t.subClasses[0].a0
+
+board.addFather(t)
+print t.father.a0
