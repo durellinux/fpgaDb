@@ -202,7 +202,7 @@ class Fpga():
 		return
 
 	def addFather(self, objClass):
-		father = self.__selectOnDb(objClass.fatherType,[self.allClass[objClass.fatherType].id==objClass.idFather]).first()
+		father = self.__selectOnDb(objClass.fatherType,[self.allClass[objClass.fatherType].id==objClass.idFather,self.allClass[objClass.fatherType].board==self.fpgaName]).first()
 		objClass.father = father
 		return
 

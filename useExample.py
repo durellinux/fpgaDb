@@ -10,10 +10,10 @@ board=Fpga()
 board.loadFpga("sample")
 
 tile = board.getTileByXY(1,0)
-print t.generalType
+print tile.generalType
 
-board.addSubClasses(t)
-print t.subClasses[0].a0
+board.addSubClasses(tile)
+print tile.subClasses[0].a0
 
-board.addFather(t)
-print t.father.a0
+board.addFather(tile)
+print tile.father.a0
