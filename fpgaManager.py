@@ -25,7 +25,7 @@ class Fpga():
 			if self.i/(self.totalNumLines/100) == 1:
 				self.perc += 1
 				self.i=0	
-				print str(self.perc)+"%\t"+line,
+				print str(self.perc)+"%"
 			self.i+=1
 			if not line:
 				return
@@ -35,6 +35,8 @@ class Fpga():
 
 					if words[0][1:] in self.allClassName:
 						t = (self.allClass[words[0][1:]])()
+#					if words[0][1:] == 'xdl_resource_report':
+#						self.board = words[2].split('"')[1]
 					list_att = list()
 					list_val = list()
 					for w in words[1:-1]:
@@ -48,7 +50,7 @@ class Fpga():
 
 					# if not exist create class in self.allClass with type()
 					if words[0][1:] not in self.allClassName:
-						dic_att = {'__tablename__':words[0][1:],'id':Column(Integer,primary_key=True)}
+						dic_att = {'__tablename__':words[0][1:],'id':Column(Integer,primary_key=True),'board':Column(String)}
 						dic_att['idFather'] = Column(Integer)
 						dic_att['fatherType'] = Column(String)
 						for att in list_att:
@@ -61,6 +63,8 @@ class Fpga():
 						t = (self.allClass[words[0][1:]])()
 						for a, v in zip(list_att,list_val):
 							t.__dict__[a]=v
+#					t.__dict__['board'] = self.board
+					t.__dict__['board'] = self.fpgaName
 					t.__dict__['idFather'] = self.currentIdClass[root.__class__.__name__]
 					t.__dict__['fatherType'] = root.__class__.__name__
 					self.lock.acquire()
@@ -79,11 +83,14 @@ class Fpga():
 				else:
 					continue
 
-	def __createDbFromXml(self,speed=1):
+	def __createDbFromXml(self,speed=1,dbCreated=False):
 		self.lock = Lock()
 		self.i=0
 		self.perc=0
 		self.currentIdClass = {self.__class__.__name__ : 0}
+		if dbCreated:
+			for cn in self.allClassName:
+				self.currentIdClass[cn] = 0
 		try:
 			self.fd = open(self.xmlFilename,"r")
 			num=0
@@ -97,7 +104,7 @@ class Fpga():
 		except	IOError as e:
 			print "error: impossible to open file " + "\""+e.filename+"\""
 			return False
-		print str(self.perc)+"%"
+		print str(self.perc)+"% loading..."
 		t = Thread(target=self.__analizeXml, args=[self])
 		t.start()
 #		self.__analize()
@@ -106,15 +113,42 @@ class Fpga():
 			self.lock.acquire()
 			self.session.commit()
 			self.lock.release()
-		TableList = type('tableList', (self.Base,), {'__tablename__':'tableList','id':Column(Integer,primary_key=True),'name':Column(String)})
-		self.Base.metadata.create_all()
-		for c in self.allClassName:
-			tableList = TableList()
-			tableList.name = c
-			self.session.add(tableList)
+		if not dbCreated:
+			BoardList = type('boardList', (self.Base,), {'__tablename__':'boardList','id':Column(Integer,primary_key=True),'board':Column(String)})
+			TableList = type('tableList', (self.Base,), {'__tablename__':'tableList','id':Column(Integer,primary_key=True),'name':Column(String)})
+			self.Base.metadata.create_all()
+			boardList = BoardList()
+#			boardList.board = self.board
+#			self.boardList = [self.board]
+			boardList.board = self.fpgaName
+			self.boardList = [self.fpgaName]
+			for c in self.allClassName:
+				tableList = TableList()
+				tableList.name = c
+				self.session.add(tableList)
+			self.session.add(boardList)
+		else:
+			boardList = self.allClass['boardList']()
+			boardList.board = self.fpgaName
+#			self.boardList.append(self.board)
+			self.boardList.append(self.fpgaName)
+			self.session.add(boardList)
 		self.session.commit()
 		self.fd.close()
 		return True
+
+	def __loadTablesFromDb(self):
+		boardList = type('boardList',(self.Base,),{'__table__': Table('boardList', self.Base.metadata, autoload=True, autoload_with=self.engine)})
+		tableList = type('tableList',(self.Base,),{'__table__': Table('tableList', self.Base.metadata, autoload=True, autoload_with=self.engine)})
+		self.Base.metadata.create_all()
+		self.allClass['boardList'] = boardList
+		for k in self.session.query(tableList):
+			self.allClassName.append(k.name)
+			self.allClass[k.name] = type(str(k.name),(self.Base,),{'__table__' : Table(k.name, self.Base.metadata, autoload=True, autoload_with=self.engine)})
+		self.boardList = list()
+		for b in self.session.query(boardList):
+			self.boardList.append(b.board)
+		self.Base.metadata.create_all()
 
 	def __open_db(self,dbCreated=True):
 		self.Base=declarative_base()
@@ -123,17 +157,16 @@ class Fpga():
 		self.Session=sessionmaker(bind=self.engine)
 		self.session=self.Session()
 		if not dbCreated:
-			self.__createDbFromXml()
+			self.__createDbFromXml(dbCreated=False)
 		else:
-			tableList = type('tableList',(self.Base,),{'__table__': Table('tableList', self.Base.metadata, autoload=True, autoload_with=self.engine)})
-			self.Base.metadata.create_all()
-			for k in self.session.query(tableList):
-				self.allClassName.append(k.name)
-				self.allClass[k.name] = type(str(k.name),(self.Base,),{'__table__' : Table(k.name, self.Base.metadata, autoload=True, autoload_with=self.engine)})
-			self.Base.metadata.create_all()
+			self.__loadTablesFromDb()
+		if not self.fpgaName in self.boardList:
+			print "fpgaName not in boardList, loading from xml file"
+			self.__createDbFromXml(dbCreated=True)
 
 	def loadFpga(self,fpgaName):
-		self.dbName = "fpgaDbs/" + fpgaName + ".db"
+		self.fpgaName = fpgaName
+		self.dbName = "fpgaDb/fpgaDb.db"
 		self.xmlFilename = "inputs/" + fpgaName + ".xml"
 		if (not os.path.exists(self.xmlFilename)):
 			os.system("python scripts/xdlrc2xml.py inputs/"+fpgaName+".xdlrc")
