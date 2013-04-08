@@ -157,25 +157,43 @@ class Fpga():
 		self.Session=sessionmaker(bind=self.engine)
 		self.session=self.Session()
 		if not dbCreated:
+			# generate xdlrc
+			#if (not os.path.exists(self.xdlrcName)):
+			#	os.system("xdl -report "+ self.fpgaName)			
+			if (not os.path.exists(self.xmlFilename)):
+				os.system("python scripts/xdlrc2xml.py inputs/"+self.fpgaName+".xdlrc")
 			self.__createDbFromXml(dbCreated=False)
 		else:
 			self.__loadTablesFromDb()
 		if not self.fpgaName in self.boardList:
 			print "fpgaName not in boardList, loading from xml file"
+			# generate xdlrc
+			#if (not os.path.exists(self.xdlrcName)):
+			#	os.system("xdl -report "+ self.fpgaName)
+			if (not os.path.exists(self.xmlFilename)):
+				os.system("python scripts/xdlrc2xml.py inputs/"+self.fpgaName+".xdlrc")
 			self.__createDbFromXml(dbCreated=True)
 
 	def loadFpga(self,fpgaName):
 		self.fpgaName = fpgaName
 		self.dbName = "fpgaDb/fpgaDb.db"
+		self.xdlrcName = "inputs/" + fpgaName + ".xdlrc"
 		self.xmlFilename = "inputs/" + fpgaName + ".xml"
-		if (not os.path.exists(self.xmlFilename)):
-			os.system("python scripts/xdlrc2xml.py inputs/"+fpgaName+".xdlrc")
 		if (not os.path.exists(self.dbName)):
   			f=open(self.dbName,"w");
   			f.close()
 			self.__open_db(dbCreated=False)
 		else:
 			self.__open_db()
+
+	def __selectOnDb(self, table_name, conditions):
+		return self.session.query(self.allClass[table_name]).filter(*conditions)
+
+	def getTileByXY(self,x,y):
+		return self.__selectOnDb('tile',[self.allClass['tile'].x==x, self.allClass['tile'].y==y]).first()
+
+
+
 
 
 
