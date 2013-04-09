@@ -92,7 +92,7 @@ class Fpga():
 		self.currentIdClass = {self.__class__.__name__ : 0}
 		if dbCreated:
 			for cn in self.allClassName:
-				self.currentIdClass[cn] = 0
+				self.currentIdClass[cn] = self.session.query(self.allClass[cn]).count()
 		try:
 			self.fd = open(self.xmlFilename,"r")
 			num=0
@@ -160,8 +160,9 @@ class Fpga():
 		self.session=self.Session()
 		if not dbCreated:
 			# generate xdlrc
-			#if (not os.path.exists(self.xdlrcName)):
-			#	os.system("xdl -report "+ self.fpgaName)			
+			if (not os.path.exists(self.xdlrcName)):
+				os.system("xdl -report "+ self.fpgaName)
+				os.system("mv *.xdlrc input/")			
 			if (not os.path.exists(self.xmlFilename)):
 				os.system("python scripts/xdlrc2xml.py inputs/"+self.fpgaName+".xdlrc")
 			self.__createDbFromXml(dbCreated=False)
@@ -170,8 +171,9 @@ class Fpga():
 		if not self.fpgaName in self.boardList:
 			print "fpgaName not in boardList, loading from xml file"
 			# generate xdlrc
-			#if (not os.path.exists(self.xdlrcName)):
-			#	os.system("xdl -report "+ self.fpgaName)
+			if (not os.path.exists(self.xdlrcName)):
+				os.system("xdl -report "+ self.fpgaName)
+				os.system("mv *.xdlrc input/")
 			if (not os.path.exists(self.xmlFilename)):
 				os.system("python scripts/xdlrc2xml.py inputs/"+self.fpgaName+".xdlrc")
 			self.__createDbFromXml(dbCreated=True)
