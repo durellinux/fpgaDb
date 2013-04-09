@@ -194,7 +194,7 @@ class Fpga():
 		return self.session.query(self.allClass[table_name]).filter(*conditions)
 
 	def getTileByXY(self,x,y):
-		return self.__selectOnDb('tile',[self.allClass['tile'].x==x, self.allClass['tile'].y==y]).first()
+		return self.__selectOnDb('tile',[self.allClass['tile'].x==x, self.allClass['tile'].y==y, self.allClass['tile'].board==self.fpgaName]).first()
 
 	def addSubClasses(self,objClass):
 		children = list()
