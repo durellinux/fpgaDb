@@ -189,6 +189,7 @@ class Fpga():
 			self.__open_db(dbCreated=False)
 		else:
 			self.__open_db()
+		os.system("rm inputs/*.xdlrc inputs/*.xml")
 
 	def __selectOnDb(self, table_name, conditions):
 		return self.session.query(self.allClass[table_name]).filter(*conditions)
