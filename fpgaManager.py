@@ -162,7 +162,7 @@ class Fpga():
 			# generate xdlrc
 			if (not os.path.exists(self.xdlrcName)):
 				os.system("xdl -report "+ self.fpgaName)
-				os.system("mv *.xdlrc input/")			
+				os.system("mv *.xdlrc inputs/")			
 			if (not os.path.exists(self.xmlFilename)):
 				os.system("python scripts/xdlrc2xml.py inputs/"+self.fpgaName+".xdlrc")
 			self.__createDbFromXml(dbCreated=False)
@@ -173,7 +173,7 @@ class Fpga():
 			# generate xdlrc
 			if (not os.path.exists(self.xdlrcName)):
 				os.system("xdl -report "+ self.fpgaName)
-				os.system("mv *.xdlrc input/")
+				os.system("mv *.xdlrc inputs/")
 			if (not os.path.exists(self.xmlFilename)):
 				os.system("python scripts/xdlrc2xml.py inputs/"+self.fpgaName+".xdlrc")
 			self.__createDbFromXml(dbCreated=True)
