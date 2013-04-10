@@ -11,7 +11,7 @@ def add_attr(line):
 		line = line.replace(w,"!",1)
 		i+=1
 
-	# create generalType for entity
+'''	# create generalType for entity
 	tile_att = ['x','y','generalType','specificType','num']
 	if entity == '<tile':
 		tag = words[2]
@@ -28,13 +28,14 @@ def add_attr(line):
 		words.remove(tag)
 		words.insert(2,generalType + "\" tileX=\""+tileX+"\" tileY=\""+tileY)
 	#####
-
+'''
 	i=0
 	for w in words:
-		if entity == '<tile':
+		line = line.replace("!","a"+str(i)+"=\""+w+"\"",1)
+'''		if entity == '<tile':
 			line = line.replace("!",tile_att[i]+"=\""+w+"\"",1)
 		else:
-			line = line.replace("!","a"+str(i)+"=\""+w+"\"",1)
+			line = line.replace("!","a"+str(i)+"=\""+w+"\"",1) '''
 		i+=1
 	return line
 
