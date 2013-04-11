@@ -35,8 +35,7 @@ class Fpga():
 
 					if words[0][1:] in self.allClassName:
 						t = (self.allClass[words[0][1:]])()
-#					if words[0][1:] == 'xdl_resource_report':
-#						self.board = words[2].split('"')[1]
+
 					list_att = list()
 					list_val = list()
 					for w in words[1:-1]:
@@ -65,7 +64,6 @@ class Fpga():
 						t = (self.allClass[words[0][1:]])()
 						for a, v in zip(list_att,list_val):
 							t.__dict__[a]=v
-#					t.__dict__['board'] = self.board
 					t.__dict__['board'] = self.fpgaName
 					t.__dict__['idFather'] = self.currentIdClass[root.__class__.__name__]
 					t.__dict__['fatherType'] = root.__class__.__name__
@@ -92,7 +90,7 @@ class Fpga():
 		self.currentIdClass = {self.__class__.__name__ : 0}
 		if dbCreated:
 			for cn in self.allClassName:
-				self.currentIdClass[cn] = self.session.query(self.allClass[cn]).count()
+				self.currentIdClass[cn] = self.session.query(self.allClass['tableList']).filter(self.allClass['tableList'].name==cn).first().count
 		try:
 			self.fd = open(self.xmlFilename,"r")
 			num=0
@@ -109,7 +107,6 @@ class Fpga():
 		print str(self.perc)+"% loading..."
 		t = Thread(target=self.__analizeXml, args=[self])
 		t.start()
-#		self.__analize()
 		while t.isAlive():
 			time.sleep(speed)
 			self.lock.acquire()
@@ -117,22 +114,22 @@ class Fpga():
 			self.lock.release()
 		if not dbCreated:
 			BoardList = type('boardList', (self.Base,), {'__tablename__':'boardList','id':Column(Integer,primary_key=True),'board':Column(String)})
-			TableList = type('tableList', (self.Base,), {'__tablename__':'tableList','id':Column(Integer,primary_key=True),'name':Column(String)})
+			TableList = type('tableList', (self.Base,), {'__tablename__':'tableList','id':Column(Integer,primary_key=True),'name':Column(String),'count':Column(Integer)})
 			self.Base.metadata.create_all()
 			boardList = BoardList()
-#			boardList.board = self.board
-#			self.boardList = [self.board]
 			boardList.board = self.fpgaName
 			self.boardList = [self.fpgaName]
 			for c in self.allClassName:
 				tableList = TableList()
 				tableList.name = c
+				tableList.count = self.currentIdClass[c]
 				self.session.add(tableList)
 			self.session.add(boardList)
 		else:
 			boardList = self.allClass['boardList']()
 			boardList.board = self.fpgaName
-#			self.boardList.append(self.board)
+			for c in self.allClassName:
+				self.session.query(self.allClass['tableList']).filter(self.allClass['tableList'].name==c).update({'count':self.currentIdClass[c]},synchronize_session=False)
 			self.boardList.append(self.fpgaName)
 			self.session.add(boardList)
 		self.session.commit()
@@ -144,6 +141,7 @@ class Fpga():
 		tableList = type('tableList',(self.Base,),{'__table__': Table('tableList', self.Base.metadata, autoload=True, autoload_with=self.engine)})
 		self.Base.metadata.create_all()
 		self.allClass['boardList'] = boardList
+		self.allClass['tableList'] = tableList
 		for k in self.session.query(tableList):
 			self.allClassName.append(k.name)
 			self.allClass[k.name] = type(str(k.name),(self.Base,),{'__table__' : Table(k.name, self.Base.metadata, autoload=True, autoload_with=self.engine),'subClasses':None,'father':None})
@@ -189,13 +187,13 @@ class Fpga():
 			self.__open_db(dbCreated=False)
 		else:
 			self.__open_db()
-		os.system("rm inputs/*.xdlrc inputs/*.xml")
+		#os.system("rm inputs/*.xdlrc inputs/*.xml")
 
 	def __selectOnDb(self, table_name, conditions):
 		return self.session.query(self.allClass[table_name]).filter(*conditions)
 
 	def getTileByXY(self,x,y):
-		return self.__selectOnDb('tile',[self.allClass['tile'].x==x, self.allClass['tile'].y==y, self.allClass['tile'].board==self.fpgaName]).first()
+		return self.__selectOnDb('tile',[self.allClass['tile'].a0==x, self.allClass['tile'].a1==y, self.allClass['tile'].board==self.fpgaName]).first()
 
 	def addSubClasses(self,objClass):
 		children = list()
